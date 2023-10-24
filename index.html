@@ -6,73 +6,84 @@
     <!-- Binaural Audio Section -->
     <!-- Frequency Offset Slider -->
     <input type="range" id="frequencyOffsetSlider" min="0" max="50" value="10">
-    <span id="frequencyOffsetDisplay">10</span> <!-- Display the offset value -->
-
+    
     <!-- Play Button for Binaural Audio -->
-    <button id="playButtonBinaural" class="play">Play Binaural</button>
+    <button id="playButtonBinaural">Play Binaural</button>
 
     <script>
-        let audioContextBinaural = null;
+        // Create an AudioContext for Binaural Audio
+        const audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
+
         let leftOscillator = null;
         let rightOscillator = null;
 
-        function initAudioContext() {
-            audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
-            leftOscillator = audioContextBinaural.createOscillator();
-            rightOscillator = audioContextBinaural.createOscillator();
-            leftOscillator.type = 'sine';
-            rightOscillator.type = 'sine';
-            leftOscillator.connect(audioContextBinaural.destination);
-            rightOscillator.connect(audioContextBinaural.destination);
-        }
+        // Create stereo pan nodes for panning left and right
+        const leftPanNode = audioContextBinaural.createStereoPanner();
+        const rightPanNode = audioContextBinaural.createStereoPanner();
+        leftPanNode.pan.value = -1; // Full left
+        rightPanNode.pan.value = 1; // Full right
 
-        function startAudio() {
-            if (!audioContextBinaural) {
-                initAudioContext();
-                updateFrequencyOffset();
-            }
-            leftOscillator.start();
-            rightOscillator.start();
-            document.getElementById('playButtonBinaural').classList.add('playing');
-        }
+        // Connect the pan nodes to the audio output
+        leftPanNode.connect(audioContextBinaural.destination);
+        rightPanNode.connect(audioContextBinaural.destination);
 
-        function stopAudio() {
-            leftOscillator.stop();
-            rightOscillator.stop();
-            leftOscillator.disconnect();
-            rightOscillator.disconnect();
-            document.getElementById('playButtonBinaural').classList.remove('playing');
-        }
+        // Create gain nodes for volume control
+        const leftGainNode = audioContextBinaural.createGain();
+        const rightGainNode = audioContextBinaural.createGain();
 
-        function updateFrequencyOffset() {
-            const offset = parseInt(frequencyOffsetSlider.value);
-            frequencyOffsetDisplay.textContent = offset;
-            leftOscillator.frequency.setValueAtTime(440, audioContextBinaural.currentTime);
-            rightOscillator.frequency.setValueAtTime(440 + offset, audioContextBinaural.currentTime);
-        }
+        // Connect the oscillators to the gain nodes
+        leftGainNode.connect(leftPanNode);
+        rightGainNode.connect(rightPanNode);
 
+        // Set volume (50% reduction)
+        leftGainNode.gain.value = 0.5;
+        rightGainNode.gain.value = 0.5;
+
+        // Update frequency offset when the slider is changed
         const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
-        const frequencyOffsetDisplay = document.getElementById('frequencyOffsetDisplay');
-        const playButtonBinaural = document.getElementById('playButtonBinaural');
 
-        playButtonBinaural.addEventListener('click', function() {
-            if (!audioContextBinaural) {
-                initAudioContext();
-            }
-            
-            if (audioContextBinaural.state === 'running') {
-                stopAudio();
-            } else {
-                startAudio();
-            }
-        });
+        let frequencyOffset = parseInt(frequencyOffsetSlider.value);
 
         frequencyOffsetSlider.addEventListener('input', updateFrequencyOffset);
-    </script>
-    <style>
-        .play.playing {
-            background-color: red;
+
+        function updateFrequencyOffset() {
+            frequencyOffset = parseInt(frequencyOffsetSlider.value);
+            if (leftOscillator) {
+                leftOscillator.frequency.setValueAtTime(440, audioContextBinaural.currentTime); // Default frequency
+                rightOscillator.frequency.setValueAtTime(440 + frequencyOffset, audioContextBinaural.currentTime);
+            }
         }
-    </style>
+
+        // Play and stop the binaural oscillators when the button is clicked
+        const playButtonBinaural = document.getElementById('playButtonBinaural');
+        let isPlayingBinaural = false;
+
+        playButtonBinaural.addEventListener('click', () => {
+            if (isPlayingBinaural) {
+                leftOscillator.stop();
+                rightOscillator.stop();
+                leftOscillator.disconnect(leftGainNode);
+                rightOscillator.disconnect(rightGainNode);
+                playButtonBinaural.innerText = 'Play Binaural';
+                leftOscillator = null;
+                rightOscillator = null;
+            } else {
+                leftOscillator = audioContextBinaural.createOscillator();
+                rightOscillator = audioContextBinaural.createOscillator();
+                leftOscillator.type = 'sine';
+                rightOscillator.type = 'sine';
+                leftOscillator.connect(leftGainNode);
+                rightOscillator.connect(rightGainNode);
+                leftOscillator.start();
+                rightOscillator.start();
+                playButtonBinaural.innerText = 'Stop Binaural';
+                updateFrequencyOffset();
+            }
+            isPlayingBinaural = !isPlayingBinaural;
+        });
+
+        // Initially update the frequency offset based on the slider value
+        updateFrequencyOffset();
+    </script>
 </body>
 </html>
