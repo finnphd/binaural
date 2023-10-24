@@ -56,6 +56,7 @@
 
         // Create a stereo pan node for panning left and right
         const panNode = audioContextBinaural.createStereoPanner();
+        panNode.pan.value = 1; // Full right
 
         // Connect the left oscillator to the left channel and the right oscillator to the right channel
         leftOscillator.connect(panNode);
@@ -63,6 +64,10 @@
 
         // Connect the pan node to the audio output
         panNode.connect(audioContextBinaural.destination);
+
+        // Volume adjustment
+        leftOscillator.volume = 0.5;
+        rightOscillator.volume = 0.5;
 
         // Update frequency offset and default frequency when the sliders are changed
         const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
