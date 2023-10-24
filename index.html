@@ -9,55 +9,46 @@
     <span id="frequencyOffsetDisplay">10</span> <!-- Display the offset value -->
 
     <!-- Play Button for Binaural Audio -->
-    <button id="playButtonBinaural">Play Binaural</button>
+    <button id="playButtonBinaural" class="play">Play Binaural</button>
 
     <script>
-        let audioContextBinaural;
-        let leftOscillator;
-        let rightOscillator;
+        let audioContextBinaural = null;
+        let leftOscillator = null;
+        let rightOscillator = null;
 
-        async function initAudio() {
-            if (!audioContextBinaural) {
-                audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
-
-                // Create the oscillators
-                leftOscillator = audioContextBinaural.createOscillator();
-                rightOscillator = audioContextBinaural.createOscillator();
-                leftOscillator.type = 'sine';
-                rightOscillator.type = 'sine';
-
-                // Connect the oscillators
-                leftOscillator.connect(audioContextBinaural.destination);
-                rightOscillator.connect(audioContextBinaural.destination);
-            }
-
-            // Update the frequency offset
-            updateFrequencyOffset();
+        function initAudioContext() {
+            audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
+            leftOscillator = audioContextBinaural.createOscillator();
+            rightOscillator = audioContextBinaural.createOscillator();
+            leftOscillator.type = 'sine';
+            rightOscillator.type = 'sine';
+            leftOscillator.connect(audioContextBinaural.destination);
+            rightOscillator.connect(audioContextBinaural.destination);
         }
 
         function startAudio() {
-            initAudio();
-
-            // Start the oscillators
+            if (!audioContextBinaural) {
+                initAudioContext();
+                updateFrequencyOffset();
+            }
             leftOscillator.start();
             rightOscillator.start();
+            document.getElementById('playButtonBinaural').classList.add('playing');
         }
 
         function stopAudio() {
-            // Stop and disconnect the oscillators
             leftOscillator.stop();
             rightOscillator.stop();
             leftOscillator.disconnect();
             rightOscillator.disconnect();
+            document.getElementById('playButtonBinaural').classList.remove('playing');
         }
 
         function updateFrequencyOffset() {
             const offset = parseInt(frequencyOffsetSlider.value);
             frequencyOffsetDisplay.textContent = offset;
-            if (leftOscillator && rightOscillator) {
-                leftOscillator.frequency.setValueAtTime(440, audioContextBinaural.currentTime);
-                rightOscillator.frequency.setValueAtTime(440 + offset, audioContextBinaural.currentTime);
-            }
+            leftOscillator.frequency.setValueAtTime(440, audioContextBinaural.currentTime);
+            rightOscillator.frequency.setValueAtTime(440 + offset, audioContextBinaural.currentTime);
         }
 
         const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
@@ -65,19 +56,23 @@
         const playButtonBinaural = document.getElementById('playButtonBinaural');
 
         playButtonBinaural.addEventListener('click', function() {
-            if (audioContextBinaural && audioContextBinaural.state === 'suspended') {
-                audioContextBinaural.resume().then(function() {
-                    startAudio();
-                });
-            } else if (audioContextBinaural && audioContextBinaural.state === 'running') {
+            if (!audioContextBinaural) {
+                initAudioContext();
+            }
+            
+            if (audioContextBinaural.state === 'running') {
                 stopAudio();
             } else {
-                console.error('Web Audio API is not supported by your browser.');
+                startAudio();
             }
-            playButtonBinaural.textContent = audioContextBinaural.state === 'running' ? 'Stop Binaural' : 'Play Binaural';
         });
 
         frequencyOffsetSlider.addEventListener('input', updateFrequencyOffset);
     </script>
+    <style>
+        .play.playing {
+            background-color: red;
+        }
+    </style>
 </body>
 </html>
