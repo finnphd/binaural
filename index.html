@@ -6,13 +6,17 @@
     <!-- Binaural Audio Section -->
     <!-- Frequency Offset Slider -->
     <input type="range" id="frequencyOffsetSlider" min="0" max="50" value="10">
-    
+    <span id="frequencyOffsetDisplay">10</span> <!-- Display the offset value -->
+
     <!-- Play Button for Binaural Audio -->
     <button id="playButtonBinaural">Play Binaural</button>
 
     <script>
-        // Create an AudioContext for Binaural Audio
+        // Create an AudioContext for Binaural Audio with error handling
         const audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
+        if (!audioContextBinaural) {
+            alert("Web Audio API is not supported by your browser.");
+        }
 
         let leftOscillator = null;
         let rightOscillator = null;
@@ -63,7 +67,7 @@
                 leftOscillator.stop();
                 rightOscillator.stop();
                 leftOscillator.disconnect(leftGainNode);
-                rightOscillator.disconnect(rightGainNode);
+                rightOscillator disconnect(rightGainNode);
                 playButtonBinaural.innerText = 'Play Binaural';
                 leftOscillator = null;
                 rightOscillator = null;
