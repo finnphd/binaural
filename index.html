@@ -27,6 +27,18 @@
         leftPanNode.connect(audioContextBinaural.destination);
         rightPanNode.connect(audioContextBinaural.destination);
 
+        // Create gain nodes for volume control
+        const leftGainNode = audioContextBinaural.createGain();
+        const rightGainNode = audioContextBinaural.createGain();
+
+        // Connect the oscillators to the gain nodes
+        leftGainNode.connect(leftPanNode);
+        rightGainNode.connect(rightPanNode);
+
+        // Set volume (50% reduction)
+        leftGainNode.gain.value = 0.5;
+        rightGainNode.gain.value = 0.5;
+
         // Update frequency offset when the slider is changed
         const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
 
@@ -50,8 +62,8 @@
             if (isPlayingBinaural) {
                 leftOscillator.stop();
                 rightOscillator.stop();
-                leftOscillator.disconnect(leftPanNode);
-                rightOscillator.disconnect(rightPanNode);
+                leftOscillator.disconnect(leftGainNode);
+                rightOscillator.disconnect(rightGainNode);
                 playButtonBinaural.innerText = 'Play Binaural';
                 leftOscillator = null;
                 rightOscillator = null;
@@ -60,8 +72,8 @@
                 rightOscillator = audioContextBinaural.createOscillator();
                 leftOscillator.type = 'sine';
                 rightOscillator.type = 'sine';
-                leftOscillator.connect(leftPanNode);
-                rightOscillator.connect(rightPanNode);
+                leftOscillator.connect(leftGainNode);
+                rightOscillator.connect(rightGainNode);
                 leftOscillator.start();
                 rightOscillator.start();
                 playButtonBinaural.innerText = 'Stop Binaural';
