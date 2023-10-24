@@ -12,38 +12,43 @@
     <button id="playButtonBinaural">Play Binaural</button>
 
     <script>
-        // Function to create an AudioContext
-        function createAudioContext() {
-            if ('AudioContext' in window) {
-                return new AudioContext();
-            } else if ('webkitAudioContext' in window) {
-                return new webkitAudioContext();
-            } else {
-                console.error('Web Audio API is not supported by your browser.');
-                return null;
+        let audioContextBinaural;
+        let leftOscillator;
+        let rightOscillator;
+
+        async function initAudio() {
+            if (!audioContextBinaural) {
+                audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
+
+                // Create the oscillators
+                leftOscillator = audioContextBinaural.createOscillator();
+                rightOscillator = audioContextBinaural.createOscillator();
+                leftOscillator.type = 'sine';
+                rightOscillator.type = 'sine';
+
+                // Connect the oscillators
+                leftOscillator.connect(audioContextBinaural.destination);
+                rightOscillator.connect(audioContextBinaural.destination);
             }
+
+            // Update the frequency offset
+            updateFrequencyOffset();
         }
 
-        let audioContextBinaural = createAudioContext();
-        let leftOscillator = null;
-        let rightOscillator = null;
+        function startAudio() {
+            initAudio();
 
-        function createOscillators(context) {
-            const leftOscillator = context.createOscillator();
-            const rightOscillator = context.createOscillator();
-            leftOscillator.type = 'sine';
-            rightOscillator.type = 'sine';
-            return { leftOscillator, rightOscillator };
-        }
-
-        function startOscillators() {
+            // Start the oscillators
             leftOscillator.start();
             rightOscillator.start();
         }
 
-        function stopOscillators() {
+        function stopAudio() {
+            // Stop and disconnect the oscillators
             leftOscillator.stop();
             rightOscillator.stop();
+            leftOscillator.disconnect();
+            rightOscillator.disconnect();
         }
 
         function updateFrequencyOffset() {
@@ -55,25 +60,23 @@
             }
         }
 
-        function toggleBinauralAudio() {
-            if (leftOscillator && rightOscillator) {
-                stopOscillators();
-                playButtonBinaural.textContent = 'Play Binaural';
-                leftOscillator = null;
-                rightOscillator = null;
-            } else {
-                ({ leftOscillator, rightOscillator } = createOscillators(audioContextBinaural));
-                startOscillators();
-                playButtonBinaural.textContent = 'Stop Binaural';
-                updateFrequencyOffset();
-            }
-        }
-
         const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
         const frequencyOffsetDisplay = document.getElementById('frequencyOffsetDisplay');
         const playButtonBinaural = document.getElementById('playButtonBinaural');
 
-        playButtonBinaural.addEventListener('click', toggleBinauralAudio);
+        playButtonBinaural.addEventListener('click', function() {
+            if (audioContextBinaural && audioContextBinaural.state === 'suspended') {
+                audioContextBinaural.resume().then(function() {
+                    startAudio();
+                });
+            } else if (audioContextBinaural && audioContextBinaural.state === 'running') {
+                stopAudio();
+            } else {
+                console.error('Web Audio API is not supported by your browser.');
+            }
+            playButtonBinaural.textContent = audioContextBinaural.state === 'running' ? 'Stop Binaural' : 'Play Binaural';
+        });
+
         frequencyOffsetSlider.addEventListener('input', updateFrequencyOffset);
     </script>
 </body>
