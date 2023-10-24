@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <!-- Binaural Audio Section -->
+    <!-- Frequency Offset Slider -->
+    <input type="range" id="frequencyOffsetSlider" min="0" max="50" value="10">
+    
+    <!-- Default Frequency Slider -->
+    <input type="range" id="defaultFrequencySlider" min="27" max="3000" value="440">
+    
+    <!-- Play Button for Binaural Audio -->
+    <button id="playButtonBinaural">Play Binaural</button>
+
+    <!-- Main Audio Section (Spoken Word Meditation) -->
+    <svg id="play" viewBox="0 0 200 200" style="margin: auto; width: 90vw; height: 90vh">
+        <circle cx="100" cy="100" r="100" />
+        <polygon fill="#FFFFFF" points="146.5,100 71.5,56.7 71.5,143.3" />
+    </svg>
+
+    <script>
+        let wakeLock = null;
+
+        // Function to request a wake lock
+        function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                navigator.wakeLock.request('screen')
+                    .then((lock) => {
+                        wakeLock = lock;
+                    })
+                    .catch((error) => {
+                        console.error('Wake Lock request failed: ', error);
+                    });
+            }
+        }
+
+        // Function to release the wake lock
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => {
+                    wakeLock = null;
+                });
+            }
+        }
+
+        // Create an AudioContext for Binaural Audio
+        const audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Create oscillators for the left and right channels
+        const leftOscillator = audioContextBinaural.createOscillator();
+        const rightOscillator = audioContextBinaural.createOscillator();
+
+        leftOscillator.type = 'sine';
+        rightOscillator.type = 'sine';
+
+        // Create a stereo pan node for panning left and right
+        const panNode = audioContextBinaural.createStereoPanner();
+
+        // Connect the left oscillator to the left channel and the right oscillator to the right channel
+        leftOscillator.connect(panNode);
+        rightOscillator.connect(panNode);
+
+        // Connect the pan node to the audio output
+        panNode.connect(audioContextBinaural.destination);
+
+        // Update frequency offset and default frequency when the sliders are changed
+        const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
+        const defaultFrequencySlider = document.getElementById('defaultFrequencySlider');
+
+        let defaultFrequency = parseInt(defaultFrequencySlider.value);
+        let frequencyOffset = parseInt(frequencyOffsetSlider.value);
+
+        frequencyOffsetSlider.addEventListener('input', updateFrequencyOffset);
+        defaultFrequencySlider.addEventListener('input', updateDefaultFrequency);
+
+        function updateFrequencyOffset() {
+            frequencyOffset = parseInt(frequencyOffsetSlider.value);
+            leftOscillator.frequency.setValueAtTime(defaultFrequency, audioContextBinaural.currentTime);
+            rightOscillator.frequency.setValueAtTime(defaultFrequency + frequencyOffset, audioContextBinaural.currentTime);
+        }
+
+        function updateDefaultFrequency() {
+            defaultFrequency = parseInt(defaultFrequencySlider.value);
+            leftOscillator.frequency.setValueAtTime(defaultFrequency, audioContextBinaural.currentTime);
+            rightOscillator.frequency.setValueAtTime(defaultFrequency + frequencyOffset, audioContextBinaural.currentTime);
+        }
+
+        // Play and stop the binaural oscillators when the button is clicked
+        const playButtonBinaural = document.getElementById('playButtonBinaural');
+        let isPlayingBinaural = false;
+
+        playButtonBinaural.addEventListener('click', () => {
+            if (isPlayingBinaural) {
+                leftOscillator.stop();
+                rightOscillator.stop();
+                playButtonBinaural.innerText = 'Play Binaural';
+            } else {
+                leftOscillator.start();
+                rightOscillator.start();
+                playButtonBinaural.innerText = 'Stop Binaural';
+            }
+            isPlayingBinaural = !isPlayingBinaural;
+        });
+
+        // Play and stop the main audio (spoken word meditation)
+        const playButton = document.getElementById('play');
+        const mainAudio = document.getElementById('mainAudio');
+        let isPlayingMainAudio = false;
+
+        playButton.addEventListener('mousedown', () => {
+            if (isPlayingMainAudio) {
+                mainAudio.pause();
+                playButton.style.margin = "0";
+            } else {
+                mainAudio.play();
+                playButton.style.margin = "10px";
+            }
+            isPlayingMainAudio = !isPlayingMainAudio;
+        });
+
+        // Initially update the frequency offset and default frequency based on the slider values
+        updateFrequencyOffset();
+        updateDefaultFrequency();
+    </script>
+</body>
+</html>
