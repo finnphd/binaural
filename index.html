@@ -15,7 +15,6 @@
         let audioContextBinaural = null;
         let leftOscillator = null;
         let rightOscillator = null;
-        let audioStarted = false;
 
         // Initialize the AudioContext
         function initAudioContext() {
@@ -35,16 +34,14 @@
             }
             leftOscillator.start();
             rightOscillator.start();
-            audioStarted = true;
         }
 
         function stopAudio() {
-            if (audioStarted) {
+            if (audioContextBinaural) {
                 leftOscillator.stop();
                 rightOscillator.stop();
                 leftOscillator.disconnect();
                 rightOscillator.disconnect();
-                audioStarted = false;
             }
         }
 
@@ -58,6 +55,9 @@
         const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
         const frequencyOffsetDisplay = document.getElementById('frequencyOffsetDisplay');
         const playButtonBinaural = document.getElementById('playButtonBinaural');
+
+        // Add a user-triggered audio element for Chrome
+        const audioElement = new Audio();
 
         playButtonBinaural.addEventListener('click', function() {
             if (!audioContextBinaural) {
@@ -75,6 +75,10 @@
             } else {
                 startAudio();
                 playButtonBinaural.textContent = 'Stop Binaural';
+
+                // Play an empty sound to enable Web Audio API in Chrome
+                audioElement.src = "data:audio/wav;base64,UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABgBAABAAEA";
+                audioElement.play().catch(function(error) {});
             }
         });
 
