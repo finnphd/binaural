@@ -56,9 +56,6 @@
         const frequencyOffsetDisplay = document.getElementById('frequencyOffsetDisplay');
         const playButtonBinaural = document.getElementById('playButtonBinaural');
 
-        // Add a user-triggered audio element for Chrome
-        const audioElement = new Audio();
-
         playButtonBinaural.addEventListener('click', function() {
             if (!audioContextBinaural) {
                 initAudioContext();
@@ -75,14 +72,17 @@
             } else {
                 startAudio();
                 playButtonBinaural.textContent = 'Stop Binaural';
-
-                // Play an empty sound to enable Web Audio API in Chrome
-                audioElement.src = "data:audio/wav;base64,UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABgBAABAAEA";
-                audioElement.play().catch(function(error) {});
             }
         });
 
         frequencyOffsetSlider.addEventListener('input', updateFrequencyOffset);
+
+        // Add a click event listener on the body to initiate audio for Chrome
+        document.body.addEventListener('click', function() {
+            if (!audioContextBinaural) {
+                audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        });
     </script>
 </body>
 </html>
