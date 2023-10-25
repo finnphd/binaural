@@ -11,13 +11,11 @@
     <!-- Play Button for Binaural Audio -->
     <button id="playButtonBinaural">Play Binaural</button>
 
-    <!-- Add an empty audio element for user interaction -->
-    <audio id="audio"></audio>
-
     <script>
         let audioContextBinaural = null;
         let leftOscillator = null;
         let rightOscillator = null;
+        let audioStarted = false;
 
         // Initialize the AudioContext
         function initAudioContext() {
@@ -37,13 +35,17 @@
             }
             leftOscillator.start();
             rightOscillator.start();
+            audioStarted = true;
         }
 
         function stopAudio() {
-            leftOscillator.stop();
-            rightOscillator.stop();
-            leftOscillator.disconnect();
-            rightOscillator.disconnect();
+            if (audioStarted) {
+                leftOscillator.stop();
+                rightOscillator.stop();
+                leftOscillator.disconnect();
+                rightOscillator.disconnect();
+                audioStarted = false;
+            }
         }
 
         function updateFrequencyOffset() {
@@ -56,11 +58,15 @@
         const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
         const frequencyOffsetDisplay = document.getElementById('frequencyOffsetDisplay');
         const playButtonBinaural = document.getElementById('playButtonBinaural');
-        const audioElement = document.getElementById('audio');
 
         playButtonBinaural.addEventListener('click', function() {
-            if (!audioContextBinaural || audioContextBinaural.state === 'closed') {
+            if (!audioContextBinaural) {
                 initAudioContext();
+            }
+
+            if (audioContextBinaural.state === 'closed') {
+                // Re-enable the audio context if it was closed
+                audioContextBinaural = null;
             }
 
             if (audioContextBinaural.state === 'running') {
@@ -71,9 +77,6 @@
                 playButtonBinaural.textContent = 'Stop Binaural';
             }
         });
-
-        // Ensure user interaction for Chrome to enable audio
-        audioElement.play().catch(function(error) {});
 
         frequencyOffsetSlider.addEventListener('input', updateFrequencyOffset);
     </script>
