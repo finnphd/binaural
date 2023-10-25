@@ -1,79 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if the Web Audio API is supported
+    if (typeof window.AudioContext !== "undefined" || typeof window.webkitAudioContext !== "undefined") {
+        const audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binaural Beats Generator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            height: 100vh;
-            align-items: center;
-            justify-content: center;
-        }
+        let leftOscillator = null;
+        let rightOscillator = null;
 
-        .container {
-            padding: 40px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
+        const leftPanNode = audioContextBinaural.createStereoPanner();
+        const rightPanNode = audioContextBinaural.createStereoPanner();
+        leftPanNode.pan.value = -1;
+        rightPanNode.pan.value = 1;
 
-        button {
-            padding: 10px 20px;
-            border: none;
-            background-color: #007BFF;
-            color: #fff;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background-color 0.3s ease;
-        }
+        leftPanNode.connect(audioContextBinaural.destination);
+        rightPanNode.connect(audioContextBinaural.destination);
 
-        button:hover {
-            background-color: #0056b3;
-        }
+        const leftGainNode = audioContextBinaural.createGain();
+        const rightGainNode = audioContextBinaural.createGain();
 
-        .frequency-label {
-            margin-top: 20px;
-            font-size: 1.2em;
-        }
-    </style>
-</head>
+        leftGainNode.connect(leftPanNode);
+        rightGainNode.connect(rightPanNode);
 
-<body>
-    <div class="container">
-        <!-- Binaural Audio Section -->
-        <!-- Frequency Offset Slider -->
-        <input type="range" id="frequencyOffsetSlider" min="0" max="50" value="10">
-        <div class="frequency-label">Binaural Effect: <span id="frequencyValue">10</span> Hz</div>
-        <!-- Play Button for Binaural Audio -->
-        <button id="playButtonBinaural">Play Binaural</button>
+        leftGainNode.gain.value = 0.5;
+        rightGainNode.gain.value = 0.5;
 
-        <script>
-            // ... [Your JavaScript code from the previous example goes here]
-            
-            // Update the displayed frequency offset
-            function updateDisplayValue() {
-                const frequencyValue = document.getElementById('frequencyValue');
-                frequencyValue.innerText = frequencyOffset;
-            }
+        const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
+        let frequencyOffset = parseInt(frequencyOffsetSlider.value);
 
-            frequencyOffsetSlider.addEventListener('input', () => {
-                updateFrequencyOffset();
-                updateDisplayValue();
-            });
-
-            // Initially set the displayed frequency offset
-            updateDisplayValue();
-        </script>
-    </div>
-</body>
-
-</html>
+        function update
