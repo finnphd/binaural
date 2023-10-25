@@ -6,7 +6,8 @@
     <!-- Binaural Audio Section -->
     <!-- Frequency Offset Slider -->
     <input type="range" id="frequencyOffsetSlider" min="0" max="50" value="10">
-    
+    <span id="frequencyOffsetDisplay">10</span> <!-- Display the offset value -->
+
     <!-- Play Button for Binaural Audio -->
     <button id="playButtonBinaural">Play Binaural</button>
 
@@ -36,4 +37,37 @@
 
         function stopAudio() {
             leftOscillator.stop();
-           
+            rightOscillator.stop();
+            leftOscillator.disconnect();
+            rightOscillator.disconnect();
+        }
+
+        function updateFrequencyOffset() {
+            const offset = parseInt(frequencyOffsetSlider.value);
+            frequencyOffsetDisplay.textContent = offset;
+            leftOscillator.frequency.setValueAtTime(440, audioContextBinaural.currentTime);
+            rightOscillator.frequency.setValueAtTime(440 + offset, audioContextBinaural.currentTime);
+        }
+
+        const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
+        const frequencyOffsetDisplay = document.getElementById('frequencyOffsetDisplay');
+        const playButtonBinaural = document.getElementById('playButtonBinaural');
+
+        playButtonBinaural.addEventListener('click', function() {
+            if (!audioContextBinaural || audioContextBinaural.state === 'closed') {
+                initAudioContext();
+            }
+
+            if (audioContextBinaural.state === 'running') {
+                stopAudio();
+                playButtonBinaural.textContent = 'Play Binaural';
+            } else {
+                startAudio();
+                playButtonBinaural.textContent = 'Stop Binaural';
+            }
+        });
+
+        frequencyOffsetSlider.addEventListener('input', updateFrequencyOffset);
+    </script>
+</body>
+</html>
