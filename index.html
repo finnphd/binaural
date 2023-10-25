@@ -11,11 +11,15 @@
     <!-- Play Button for Binaural Audio -->
     <button id="playButtonBinaural">Play Binaural</button>
 
+    <!-- Add an empty audio element for user interaction -->
+    <audio id="audio"></audio>
+
     <script>
         let audioContextBinaural = null;
         let leftOscillator = null;
         let rightOscillator = null;
 
+        // Initialize the AudioContext
         function initAudioContext() {
             audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
             leftOscillator = audioContextBinaural.createOscillator();
@@ -52,6 +56,7 @@
         const frequencyOffsetSlider = document.getElementById('frequencyOffsetSlider');
         const frequencyOffsetDisplay = document.getElementById('frequencyOffsetDisplay');
         const playButtonBinaural = document.getElementById('playButtonBinaural');
+        const audioElement = document.getElementById('audio');
 
         playButtonBinaural.addEventListener('click', function() {
             if (!audioContextBinaural || audioContextBinaural.state === 'closed') {
@@ -66,6 +71,9 @@
                 playButtonBinaural.textContent = 'Stop Binaural';
             }
         });
+
+        // Ensure user interaction for Chrome to enable audio
+        audioElement.play().catch(function(error) {});
 
         frequencyOffsetSlider.addEventListener('input', updateFrequencyOffset);
     </script>
