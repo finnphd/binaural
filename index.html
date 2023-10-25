@@ -87,7 +87,30 @@
         <button id="playButtonBinaural">Play Binaural</button>
 
         <script>
-            // [The same script as above goes here]
+            let audioContextBinaural;
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const playButtonBinaural = document.getElementById('playButtonBinaural');
+
+                playButtonBinaural.addEventListener('click', function() {
+                    if (typeof audioContextBinaural === 'undefined') {
+                        initializeAudioContext();
+                    }
+                    toggleBinaural();
+                });
+            });
+
+            function initializeAudioContext() {
+                audioContextBinaural = new (window.AudioContext || window.webkitAudioContext)();
+
+                // ... (all other initialization scripts from the previous provided JavaScript) ...
+                // Place all the script logic provided in the previous sections here
+            }
+
+            function toggleBinaural() {
+                // ... (all the logic to start or stop binaural sound from the previous provided JavaScript) ...
+                // Essentially, the content of the playButtonBinaural event listener
+            }
         </script>
     </div>
 </body>
